@@ -1,10 +1,8 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 import { hash } from 'bcryptjs'
 
-const url = process.env.DATABASE_URL!
-const dbUrl = url.includes("?") ? `${url}&sslmode=require` : `${url}?sslmode=require`
-const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: dbUrl }) })
+const prisma = new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: 'file:./prisma/dev.db' }) })
 
 async function main() {
   const existingAdmin = await prisma.user.findUnique({ where: { email: 'admin@portfolio.com' } })

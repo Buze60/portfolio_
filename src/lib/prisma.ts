@@ -1,18 +1,13 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-function getUrl() {
-  const url = process.env.DATABASE_URL!
-  return url.includes("?") ? `${url}&sslmode=require` : `${url}?sslmode=require`
-}
-
 const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({ adapter: new PrismaPg({ connectionString: getUrl() }) })
+  new PrismaClient({ adapter: new PrismaBetterSqlite3({ url: 'file:./prisma/dev.db' }) })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
