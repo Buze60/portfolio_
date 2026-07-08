@@ -9,22 +9,34 @@ async function isAuthenticated() {
 
 export async function GET() {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const layouts = await prisma.sectionLayout.findMany({ orderBy: { order: "asc" } })
-  return NextResponse.json(layouts)
+  try {
+    const layouts = await prisma.sectionLayout.findMany({ orderBy: { order: "asc" } })
+    return NextResponse.json(layouts)
+  } catch {
+    return NextResponse.json([])
+  }
 }
 
 export async function PUT(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const data = await request.json()
-  const layout = await prisma.sectionLayout.update({ where: { id: data.id }, data })
-  return NextResponse.json(layout)
+  try {
+    const data = await request.json()
+    const layout = await prisma.sectionLayout.update({ where: { id: data.id }, data })
+    return NextResponse.json(layout)
+  } catch {
+    return NextResponse.json({ error: "Failed to update layout" }, { status: 500 })
+  }
 }
 
 export async function POST(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const { layouts } = await request.json()
-  for (const layout of layouts) {
-    await prisma.sectionLayout.update({ where: { id: layout.id }, data: { order: layout.order } })
+  try {
+    const { layouts } = await request.json()
+    for (const layout of layouts) {
+      await prisma.sectionLayout.update({ where: { id: layout.id }, data: { order: layout.order } })
+    }
+    return NextResponse.json({ success: true })
+  } catch {
+    return NextResponse.json({ error: "Failed to reorder layouts" }, { status: 500 })
   }
-  return NextResponse.json({ success: true })
 }
