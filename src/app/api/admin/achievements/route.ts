@@ -17,21 +17,33 @@ export async function GET() {
 export async function POST(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const data = await request.json()
+    const { title, description, image, date, icon } = await request.json()
+    if (!title) return NextResponse.json({ error: "Title is required" }, { status: 400 })
     const maxOrder = await prisma.achievement.aggregate({ _max: { order: true } })
-    const item = await prisma.achievement.create({ data: { ...data, order: (maxOrder._max.order ?? -1) + 1 } })
+    const item = await prisma.achievement.create({
+      data: { title, description: description ?? null, image: image ?? null, date: date ?? null, icon, order: (maxOrder._max.order ?? -1) + 1 },
+    })
     return NextResponse.json(item)
-  } catch { return NextResponse.json({ error: "Database error" }, { status: 500 }) }
+  } catch (e) {
+    console.error("POST /api/admin/achievements error:", e)
+    return NextResponse.json({ error: "Database error" }, { status: 500 })
+  }
 }
 
 export async function PUT(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const data = await request.json()
-    const { id, ...rest } = data
-    const item = await prisma.achievement.update({ where: { id }, data: rest })
+    const { id, title, description, image, date, icon } = await request.json()
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 })
+    const item = await prisma.achievement.update({
+      where: { id },
+      data: { title, description: description ?? null, image: image ?? null, date: date ?? null, icon },
+    })
     return NextResponse.json(item)
-  } catch { return NextResponse.json({ error: "Database error" }, { status: 500 }) }
+  } catch (e) {
+    console.error("PUT /api/admin/achievements error:", e)
+    return NextResponse.json({ error: "Database error" }, { status: 500 })
+  }
 }
 
 export async function DELETE(request: Request) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Upload, X } from "lucide-react"
 import type { ProjectType } from "@/types"
 
 export default function ProjectsPage() {
@@ -11,6 +11,7 @@ export default function ProjectsPage() {
   const [editing, setEditing] = useState<ProjectType | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: "", description: "", techStack: "", link: "", github: "", image: "" })
+  const [uploading, setUploading] = useState(false)
 
   async function fetchItems() {
     try {
@@ -21,13 +22,27 @@ export default function ProjectsPage() {
 
   useEffect(() => { fetchItems() }, [])
 
+  async function handleFileUpload(file: File) {
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        setForm({ ...form, image: url })
+      }
+    } catch {} finally { setUploading(false) }
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    const data = { ...form, link: form.link || null, github: form.github || null, image: form.image || null }
+    const body = { title: form.title, description: form.description, image: form.image || null, link: form.link || null, github: form.github || null, techStack: form.techStack }
     const res = editing
-      ? await fetch("/api/admin/projects", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, id: editing.id }) })
-      : await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+      ? await fetch("/api/admin/projects", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, id: editing.id }) })
+      : await fetch("/api/admin/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
     if (res.ok) { setShowForm(false); setEditing(null); setForm({ title: "", description: "", techStack: "", link: "", github: "", image: "" }); fetchItems() }
+    else { const err = await res.json(); alert(err.error || "Failed to save") }
   }
 
   async function handleDelete(id: string) {
@@ -69,6 +84,22 @@ export default function ProjectsPage() {
             <div><label className="block text-sm font-medium mb-1">GitHub</label><input type="url" value={form.github} onChange={(e) => setForm({ ...form, github: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-dark-bg border border-dark-border focus:border-primary/50 focus:outline-none" placeholder="https://github.com/..." /></div>
           </div>
           <div><label className="block text-sm font-medium mb-1">Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-dark-bg border border-dark-border focus:border-primary/50 focus:outline-none resize-none" rows={3} required /></div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Project Image</label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-bg border border-dark-border cursor-pointer hover:border-primary/50 transition-colors">
+                <Upload className="w-4 h-4" />
+                <span className="text-sm">{uploading ? "Uploading..." : "Upload image"}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f) }} />
+              </label>
+              {form.image && (
+                <div className="flex items-center gap-2">
+                  <img src={form.image} className="w-10 h-10 rounded object-cover" />
+                  <button type="button" onClick={() => setForm({ ...form, image: "" })} className="p-1 hover:text-red-400"><X className="w-4 h-4" /></button>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="flex gap-3 pt-2">
             <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors">{editing ? "Update" : "Create"}</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 rounded-lg bg-dark-border text-dark-muted hover:text-white transition-colors">Cancel</button>
@@ -80,7 +111,10 @@ export default function ProjectsPage() {
         {items.map((item) => (
           <div key={item.id} className="p-5 rounded-xl bg-dark-card border border-dark-border group">
             <div className="flex items-start justify-between mb-3">
-              <h3 className="font-semibold text-lg">{item.title}</h3>
+              <div className="flex items-center gap-3">
+                {item.image && <img src={item.image} className="w-12 h-12 rounded-lg object-cover" />}
+                <h3 className="font-semibold text-lg">{item.title}</h3>
+              </div>
               <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button onClick={() => startEdit(item)} className="p-2 rounded-lg hover:bg-dark-border transition-colors"><Pencil className="w-4 h-4" /></button>
                 <button onClick={() => handleDelete(item.id)} className="p-2 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-colors"><Trash2 className="w-4 h-4" /></button>

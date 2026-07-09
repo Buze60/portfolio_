@@ -17,21 +17,33 @@ export async function GET() {
 export async function POST(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const data = await request.json()
+    const { title, description, image, link, github, techStack } = await request.json()
+    if (!title || !techStack) return NextResponse.json({ error: "Title and tech stack are required" }, { status: 400 })
     const maxOrder = await prisma.project.aggregate({ _max: { order: true } })
-    const item = await prisma.project.create({ data: { ...data, order: (maxOrder._max.order ?? -1) + 1 } })
+    const item = await prisma.project.create({
+      data: { title, description, image: image ?? null, link: link ?? null, github: github ?? null, techStack, order: (maxOrder._max.order ?? -1) + 1 },
+    })
     return NextResponse.json(item)
-  } catch { return NextResponse.json({ error: "Database error" }, { status: 500 }) }
+  } catch (e) {
+    console.error("POST /api/admin/projects error:", e)
+    return NextResponse.json({ error: "Database error" }, { status: 500 })
+  }
 }
 
 export async function PUT(request: Request) {
   if (!(await isAuthenticated())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const data = await request.json()
-    const { id, ...rest } = data
-    const item = await prisma.project.update({ where: { id }, data: rest })
+    const { id, title, description, image, link, github, techStack } = await request.json()
+    if (!id) return NextResponse.json({ error: "ID is required" }, { status: 400 })
+    const item = await prisma.project.update({
+      where: { id },
+      data: { title, description, image: image ?? null, link: link ?? null, github: github ?? null, techStack },
+    })
     return NextResponse.json(item)
-  } catch { return NextResponse.json({ error: "Database error" }, { status: 500 }) }
+  } catch (e) {
+    console.error("PUT /api/admin/projects error:", e)
+    return NextResponse.json({ error: "Database error" }, { status: 500 })
+  }
 }
 
 export async function DELETE(request: Request) {

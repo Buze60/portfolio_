@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
-import { Plus, Pencil, Trash2 } from "lucide-react"
+import { Plus, Pencil, Trash2, Upload, X, FileText } from "lucide-react"
 import type { AchievementType } from "@/types"
 
 const iconOptions = ["Award", "Trophy", "GitMerge", "Zap", "Star"]
@@ -12,7 +12,8 @@ export default function AchievementsPage() {
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<AchievementType | null>(null)
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ title: "", description: "", date: "", icon: "Award" })
+  const [form, setForm] = useState({ title: "", description: "", image: "", date: "", icon: "Award" })
+  const [uploading, setUploading] = useState(false)
 
   async function fetchItems() {
     try {
@@ -23,13 +24,27 @@ export default function AchievementsPage() {
 
   useEffect(() => { fetchItems() }, [])
 
+  async function handleFileUpload(file: File) {
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append("file", file)
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd })
+      if (res.ok) {
+        const { url } = await res.json()
+        setForm({ ...form, image: url })
+      }
+    } catch {} finally { setUploading(false) }
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
-    const data = { ...form, description: form.description || null, date: form.date || null }
+    const body = { title: form.title, description: form.description || null, image: form.image || null, date: form.date || null, icon: form.icon }
     const res = editing
-      ? await fetch("/api/admin/achievements", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...data, id: editing.id }) })
-      : await fetch("/api/admin/achievements", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
-    if (res.ok) { setShowForm(false); setEditing(null); setForm({ title: "", description: "", date: "", icon: "Award" }); fetchItems() }
+      ? await fetch("/api/admin/achievements", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, id: editing.id }) })
+      : await fetch("/api/admin/achievements", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    if (res.ok) { setShowForm(false); setEditing(null); setForm({ title: "", description: "", image: "", date: "", icon: "Award" }); fetchItems() }
+    else { const err = await res.json(); alert(err.error || "Failed to save") }
   }
 
   async function handleDelete(id: string) {
@@ -41,7 +56,7 @@ export default function AchievementsPage() {
 
   function startEdit(item: AchievementType) {
     setEditing(item)
-    setForm({ title: item.title, description: item.description || "", date: item.date || "", icon: item.icon })
+    setForm({ title: item.title, description: item.description || "", image: item.image || "", date: item.date || "", icon: item.icon })
     setShowForm(true)
   }
 
@@ -54,7 +69,7 @@ export default function AchievementsPage() {
           <h1 className="text-3xl font-bold">Achievements</h1>
           <p className="text-dark-muted mt-1">Manage your achievements and awards</p>
         </div>
-        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ title: "", description: "", date: "", icon: "Award" }) }}
+        <button onClick={() => { setShowForm(true); setEditing(null); setForm({ title: "", description: "", image: "", date: "", icon: "Award" }) }}
           className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-medium hover:opacity-90 transition-opacity">
           <Plus className="w-5 h-5" /> Add Achievement
         </button>
@@ -74,6 +89,24 @@ export default function AchievementsPage() {
             </div>
           </div>
           <div><label className="block text-sm font-medium mb-1">Description</label><textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="w-full px-3 py-2 rounded-lg bg-dark-bg border border-dark-border focus:border-primary/50 focus:outline-none resize-none" rows={3} /></div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Image / Certificate</label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-bg border border-dark-border cursor-pointer hover:border-primary/50 transition-colors">
+                <Upload className="w-4 h-4" />
+                <span className="text-sm">{uploading ? "Uploading..." : "Upload file"}</span>
+                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileUpload(f) }} />
+              </label>
+              {form.image && (
+                <div className="flex items-center gap-2">
+                  {form.image.match(/\.(pdf)$/i)
+                    ? <><FileText className="w-4 h-4 text-primary" /><span className="text-sm text-dark-muted">PDF</span></>
+                    : <img src={form.image} className="w-10 h-10 rounded object-cover" />}
+                  <button type="button" onClick={() => setForm({ ...form, image: "" })} className="p-1 hover:text-red-400"><X className="w-4 h-4" /></button>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="flex gap-3 pt-2">
             <button type="submit" className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-dark transition-colors">{editing ? "Update" : "Create"}</button>
             <button type="button" onClick={() => { setShowForm(false); setEditing(null) }} className="px-4 py-2 rounded-lg bg-dark-border text-dark-muted hover:text-white transition-colors">Cancel</button>
@@ -85,10 +118,16 @@ export default function AchievementsPage() {
         {items.map((item) => (
           <div key={item.id} className="p-5 rounded-xl bg-dark-card border border-dark-border group">
             <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shrink-0">
-                  <span className="text-white font-bold text-sm">🏆</span>
-                </div>
+              <div className="flex items-start gap-3 flex-1">
+                {item.image ? (
+                  item.image.match(/\.(pdf)$/i)
+                    ? <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shrink-0"><FileText className="w-5 h-5 text-white" /></div>
+                    : <img src={item.image} className="w-12 h-12 rounded-lg object-cover shrink-0" />
+                ) : (
+                  <div className="p-2.5 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shrink-0">
+                    <span className="text-white font-bold text-sm">🏆</span>
+                  </div>
+                )}
                 <div>
                   <h3 className="font-semibold">{item.title}</h3>
                   {item.description && <p className="text-dark-muted text-sm mt-1">{item.description}</p>}

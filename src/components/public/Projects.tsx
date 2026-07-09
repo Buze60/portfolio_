@@ -58,49 +58,66 @@ export default function Projects() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="group p-6 rounded-xl bg-dark-card border border-dark-border card-hover flex flex-col"
+              className="group rounded-xl bg-dark-card border border-dark-border card-hover overflow-hidden flex flex-col"
             >
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center mb-4">
-                <FolderGit2 className="w-6 h-6 text-white" />
-              </div>
+              {project.image && (
+                <div className="relative h-48 overflow-hidden">
+                  <img
+                    src={project.image}
+                    alt={project.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-card to-transparent" />
+                </div>
+              )}
 
-              <h3 className="text-lg font-semibold mb-2">{project.title}</h3>
-              <p className="text-dark-muted text-sm mb-4 flex-1">{project.description}</p>
+              <div className="p-6 flex flex-col flex-1">
+                <div className="flex items-center gap-2 mb-3">
+                  {!project.image && (
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center shrink-0">
+                      <FolderGit2 className="w-5 h-5 text-white" />
+                    </div>
+                  )}
+                  <h3 className="text-lg font-semibold">{project.title}</h3>
+                </div>
 
-              <div className="flex flex-wrap gap-2 mb-4">
-                {project.techStack.split(",").map((tech) => (
-                  <span
-                    key={tech.trim()}
-                    className="px-2.5 py-1 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
-                  >
-                    {tech.trim()}
-                  </span>
-                ))}
-              </div>
+                <p className="text-dark-muted text-sm mb-4 flex-1">{project.description}</p>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-dark-border">
-                {project.link && (
-                  <a
-                    href={project.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-dark-muted hover:text-primary transition-colors"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Live
-                  </a>
-                )}
-                {project.github && (
-                  <a
-                    href={project.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-sm text-dark-muted hover:text-primary transition-colors"
-                  >
-                    <GitBranch className="w-4 h-4" />
-                    Code
-                  </a>
-                )}
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {project.techStack.split(",").map((tech) => (
+                    <span
+                      key={tech.trim()}
+                      className="px-2.5 py-1 text-xs rounded-full bg-primary/10 text-primary border border-primary/20"
+                    >
+                      {tech.trim()}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3 pt-4 border-t border-dark-border">
+                  {project.link && (
+                    <a
+                      href={project.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm text-dark-muted hover:text-primary transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Live
+                    </a>
+                  )}
+                  {project.github && (
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm text-dark-muted hover:text-primary transition-colors"
+                    >
+                      <GitBranch className="w-4 h-4" />
+                      Code
+                    </a>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}

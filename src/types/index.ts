@@ -49,6 +49,7 @@ export interface AchievementType {
   id: string
   title: string
   description: string | null
+  image: string | null
   date: string | null
   icon: string
   order: number

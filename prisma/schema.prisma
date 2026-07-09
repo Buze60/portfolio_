@@ -111,6 +111,7 @@ model Achievement {
   id          String  @id @default(cuid())
   title       String
   description String?
+  image       String?
   date        String?
   icon        String
   order       Int
