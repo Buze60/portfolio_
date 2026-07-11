@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
+import { v2 as cloudinary } from "cloudinary"
 import { auth } from "@/lib/auth"
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
 
 async function isAuthenticated() {
   try { return !!(await auth())?.user } catch { return false }
@@ -18,16 +23,18 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const uploadDir = path.join(process.cwd(), "public", "uploads")
-    await mkdir(uploadDir, { recursive: true })
+    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "portfolio" },
+        (error, result) => {
+          if (error) reject(error)
+          else resolve(result as { secure_url: string })
+        }
+      )
+      uploadStream.end(buffer)
+    })
 
-    const ext = file.name.split(".").pop() || "jpg"
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const filepath = path.join(uploadDir, filename)
-
-    await writeFile(filepath, buffer)
-
-    return NextResponse.json({ url: `/uploads/${filename}` })
+    return NextResponse.json({ url: result.secure_url })
   } catch {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 })
   }
