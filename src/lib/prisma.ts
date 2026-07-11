@@ -7,7 +7,7 @@ const globalForPrisma = globalThis as unknown as {
 
 function createPrismaClient() {
   const adapter = new PrismaPg({
-    connectionString: process.env.DIRECT_URL!,
+    connectionString: `${process.env.DIRECT_URL!}?sslmode=require`,
   })
   return new PrismaClient({ adapter })
 }
