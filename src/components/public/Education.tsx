@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { GraduationCap, Calendar } from "lucide-react"
 import type { EducationType, SectionLayoutType } from "@/types"
+import { EducationSkeleton } from "@/components/ui/Skeleton"
 
 export default function Education() {
   const [education, setEducation] = useState<EducationType[]>([])
@@ -32,7 +33,7 @@ export default function Education() {
     fetchData()
   }, [])
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <EducationSkeleton />
 
   return (
     <section id="education" className="py-24 px-4">

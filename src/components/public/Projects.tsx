@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { FolderGit2, ExternalLink, GitBranch } from "lucide-react"
 import type { ProjectType, SectionLayoutType } from "@/types"
+import { ProjectsSkeleton } from "@/components/ui/Skeleton"
 
 export default function Projects() {
   const [projects, setProjects] = useState<ProjectType[]>([])
@@ -32,7 +33,7 @@ export default function Projects() {
     fetchData()
   }, [])
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <ProjectsSkeleton />
 
   return (
     <section id="projects" className="py-24 px-4">

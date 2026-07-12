@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Mail, Send, CheckCircle2 } from "lucide-react"
 import type { SectionLayoutType } from "@/types"
+import { ContactSkeleton } from "@/components/ui/Skeleton"
 
 export default function Contact() {
   const [layout, setLayout] = useState<SectionLayoutType | null>(null)
@@ -46,7 +47,7 @@ export default function Contact() {
     }
   }
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <ContactSkeleton />
 
   return (
     <section id="contact" className="py-24 px-4 relative">

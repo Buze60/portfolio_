@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Code2, Server, Wrench } from "lucide-react"
 import type { SkillType, SectionLayoutType } from "@/types"
+import { SkillsSkeleton } from "@/components/ui/Skeleton"
 
 const categoryIcons: Record<string, React.ElementType> = {
   Frontend: Code2,
@@ -44,7 +45,7 @@ export default function Skills() {
     fetchData()
   }, [])
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <SkillsSkeleton />
 
   const categories = [...new Set(skills.map((s) => s.category))]
 

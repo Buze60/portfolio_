@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Award, Trophy, GitMerge, Zap, Star, FileText, X, ExternalLink } from "lucide-react"
 import type { AchievementType, SectionLayoutType } from "@/types"
+import { AchievementsSkeleton } from "@/components/ui/Skeleton"
 
 const iconMap: Record<string, React.ElementType> = {
   Trophy, GitMerge, Zap, Star, Award,
@@ -37,7 +38,7 @@ export default function Achievements() {
     fetchData()
   }, [])
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <AchievementsSkeleton />
 
   return (
     <section id="achievements" className="py-24 px-4 relative">

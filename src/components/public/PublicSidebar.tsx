@@ -5,6 +5,7 @@ import {
   User, Code2, Briefcase, GraduationCap, FolderGit2, Award, Mail, ChevronLeft, Menu,
 } from "lucide-react"
 import type { SectionLayoutType } from "@/types"
+import { SidebarSkeleton } from "@/components/ui/Skeleton"
 
 const fallbackIcons: Record<string, React.ElementType> = {
   User, Code2, Briefcase, GraduationCap, FolderGit2, Award, Mail,
@@ -17,6 +18,7 @@ interface Props {
 
 export default function PublicSidebar({ activeSection, setActiveSection }: Props) {
   const [sections, setSections] = useState<SectionLayoutType[]>([])
+  const [sidebarLoading, setSidebarLoading] = useState(true)
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
@@ -34,6 +36,7 @@ export default function PublicSidebar({ activeSection, setActiveSection }: Props
       .then((r) => r.json())
       .then((data) => setSections(data.filter((s: SectionLayoutType) => s.visible).sort((a: SectionLayoutType, b: SectionLayoutType) => a.order - b.order)))
       .catch(() => {})
+      .finally(() => setSidebarLoading(false))
   }, [])
 
   useEffect(() => {
@@ -74,7 +77,9 @@ export default function PublicSidebar({ activeSection, setActiveSection }: Props
       </div>
 
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        {sections.map((section) => {
+        {sidebarLoading ? (
+          <SidebarSkeleton />
+        ) : sections.map((section) => {
           const Icon = fallbackIcons[section.icon] || User
           const isActive = activeSection === section.section
           return (

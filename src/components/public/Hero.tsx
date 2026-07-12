@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { GitBranch, Link, MessageCircle, Globe } from "lucide-react"
 import type { ProfileType, SectionLayoutType } from "@/types"
+import { HeroSkeleton } from "@/components/ui/Skeleton"
 
 export default function Hero() {
   const [profile, setProfile] = useState<ProfileType | null>(null)
@@ -33,7 +34,7 @@ export default function Hero() {
     fetchData()
   }, [])
 
-  if (loading || !profile || !layout?.visible) return null
+  if (loading || !profile || !layout?.visible) return <HeroSkeleton />
 
   const socialLinks = [
     { href: profile.socialGithub, icon: GitBranch, label: "GitHub" },

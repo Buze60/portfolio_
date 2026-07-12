@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { Briefcase, Calendar, MapPin } from "lucide-react"
 import type { ExperienceType, SectionLayoutType } from "@/types"
+import { ExperienceSkeleton } from "@/components/ui/Skeleton"
 
 export default function Experience() {
   const [experience, setExperience] = useState<ExperienceType[]>([])
@@ -32,7 +33,7 @@ export default function Experience() {
     fetchData()
   }, [])
 
-  if (loading || !layout?.visible) return null
+  if (loading || !layout?.visible) return <ExperienceSkeleton />
 
   return (
     <section id="experience" className="py-24 px-4 relative">
