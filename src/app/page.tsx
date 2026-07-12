@@ -38,7 +38,7 @@ export default function Home() {
     <div className="h-screen flex overflow-hidden bg-dark-bg">
       <PublicSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
-      <main className="flex-1 pl-16 lg:pl-64 h-screen relative">
+      <main className="flex-1 pl-0 lg:pl-64 h-screen relative">
         <div className="absolute top-6 right-6 z-30 flex items-center gap-4">
           <div className="text-right hidden sm:block">
             <p className="text-lg font-bold text-white leading-tight">{profile?.name || "Portfolio"}</p>
